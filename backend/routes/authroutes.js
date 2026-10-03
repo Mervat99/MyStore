@@ -3,7 +3,7 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 
 import generateToken from "../utils/generateToken.js";
-import User from "../models/User.js";
+import User from "../models/user.js";
 
 const router = express.Router();
 
