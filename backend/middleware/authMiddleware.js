@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import User from "../models/user.js";
 
 // Checks that the user is logged in (has a valid token)
 export const protect = async (req, res, next) => {
