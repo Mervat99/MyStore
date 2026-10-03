@@ -37,18 +37,20 @@ const AIAssistant = () => {
         },
       ]);
     } catch (error) {
-  console.error("AI FRONTEND ERROR:", error);
+      console.error("AI FRONTEND ERROR:", error);
 
-  setMessages((prev) => [
-    ...prev,
-    {
-      role: "assistant",
-      content:
-        error.response?.data?.message ||
-        "Sorry, something went wrong.",
-    },
-  ]);
-}
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            error.response?.data?.message ||
+            "Sorry, something went wrong.",
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -122,12 +124,27 @@ const AIAssistant = () => {
             ))
           )}
 
+          {/* Loading */}
           {loading && (
             <div className="flex justify-start">
               <div className="bg-surface border border-line rounded-2xl px-4 py-3">
-                <p className="text-muted text-sm">
-                  AI is thinking...
-                </p>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted">
+                    Finding the best products for you
+                  </span>
+
+                  <span className="flex gap-1">
+                    <span className="w-1.5 h-1.5 bg-muted rounded-full animate-bounce"></span>
+                    <span
+                      className="w-1.5 h-1.5 bg-muted rounded-full animate-bounce"
+                      style={{ animationDelay: "150ms" }}
+                    ></span>
+                    <span
+                      className="w-1.5 h-1.5 bg-muted rounded-full animate-bounce"
+                      style={{ animationDelay: "300ms" }}
+                    ></span>
+                  </span>
+                </div>
               </div>
             </div>
           )}
@@ -161,3 +178,4 @@ const AIAssistant = () => {
 };
 
 export default AIAssistant;
+
