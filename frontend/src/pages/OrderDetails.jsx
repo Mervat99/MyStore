@@ -1,4 +1,343 @@
-import { useEffect, useState } from "react"; import { Link, useParams } from "react-router-dom"; 
+
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import API from "../api/axios.js";
- const OrderDetails = () => { const { id } = useParams(); const [order, setOrder] = useState(null); const [loading, setLoading] = useState(true); const [error, setError] = useState(""); const userInfo = JSON.parse( localStorage.getItem("userInfo") || "null" ); const isAdmin = userInfo?.isAdmin === true || userInfo?.role === "admin"; useEffect(() => { const fetchOrder = async () => { try { setLoading(true); setError(""); const { data } = await API.get(`/orders/${id}`); setOrder(data); } catch (err) { setError( err.response?.data?.message || "Something went wrong while loading the order" ); } finally { setLoading(false); } }; fetchOrder(); }, [id]); const getStatusStyle = (status) => { switch (status) { case "Delivered": return "bg-green-500/10 text-green-400 border-green-500/20"; case "Cancelled": return "bg-red-500/10 text-red-400 border-red-500/20"; case "Shipped": return "bg-blue-500/10 text-blue-400 border-blue-500/20"; default: return "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"; } }; if (loading) { return ( <div className="max-w-5xl mx-auto px-6 py-10"> <div className="animate-pulse"> <div className="h-8 w-48 bg-card rounded mb-8" /> <div className="grid grid-cols-1 lg:grid-cols-3 gap-6"> <div className="lg:col-span-2 h-80 bg-card rounded-xl" /> <div className="h-80 bg-card rounded-xl" /> </div> </div> </div> ); } if (error) { return ( <div className="max-w-5xl mx-auto px-6 py-10 text-center"> <div className="bg-card border border-line rounded-xl p-10"> <h1 className="text-2xl font-bold text-ink"> Unable to load order </h1> <p className="text-muted mt-3">{error}</p> <Link to={isAdmin ? "/admin/orders" : "/orders"} className="inline-block mt-6 bg-accent hover:bg-accent-dark text-white font-semibold px-6 py-3 rounded-lg transition" > {isAdmin ? "Back to Orders" : "Back to My Orders"} </Link> </div> </div> ); } if (!order) return null; return ( <div className="max-w-5xl mx-auto px-6 py-10"> {/* Header */} <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8"> <div> <p className="text-muted text-sm"> {isAdmin ? "Admin / Order Details" : "Order Details"} </p> <h1 className="font-display text-2xl md:text-3xl font-bold text-ink mt-1"> Order #{order._id?.slice(-6)} </h1> <p className="text-muted text-xs mt-2 font-mono"> {order._id} </p> </div> <Link to={isAdmin ? "/admin/orders" : "/orders"} className="text-accent hover:underline text-sm font-medium" > {isAdmin ? "← Back to Orders" : "← Back to My Orders"} </Link> </div> <div className="grid grid-cols-1 lg:grid-cols-3 gap-6"> {/* Left */} <div className="lg:col-span-2 space-y-6"> {/* Items */} <div className="bg-card border border-line rounded-xl p-5"> <div className="flex items-center justify-between mb-4"> <h2 className="text-lg font-semibold text-ink"> Order Items </h2> <span className="text-muted text-sm"> {order.orderItems?.length || 0}{" "} {order.orderItems?.length === 1 ? "item" : "items"} </span> </div> <div className="divide-y divide-line"> {order.orderItems?.map((item, index) => ( <div key={item.product || index} className="flex flex-col sm:flex-row sm:items-center gap-4 py-4" > <img src={item.image} alt={item.name} className="w-20 h-20 rounded-lg object-cover border border-line" /> <div className="flex-1"> <h3 className="text-ink font-medium"> {item.name} </h3> <p className="text-muted text-sm mt-1"> Quantity: {item.qty} </p> <p className="text-muted text-xs mt-1"> ${Number(item.price || 0).toFixed(2)} each </p> </div> <div className="text-left sm:text-right"> <p className="text-accent font-semibold"> $ {Number( (item.price || 0) * (item.qty || 0) ).toFixed(2)} </p> </div> </div> ))} </div> </div> {/* Shipping */} <div className="bg-card border border-line rounded-xl p-5"> <h2 className="text-lg font-semibold text-ink mb-4"> Shipping Address </h2> <div className="grid grid-cols-1 sm:grid-cols-3 gap-4"> <div className="bg-surface border border-line rounded-lg p-4"> <p className="text-muted text-xs mb-1"> Address </p> <p className="text-ink text-sm"> {order.shippingAddress?.address || "-"} </p> </div> <div className="bg-surface border border-line rounded-lg p-4"> <p className="text-muted text-xs mb-1"> City </p> <p className="text-ink text-sm"> {order.shippingAddress?.city || "-"} </p> </div> <div className="bg-surface border border-line rounded-lg p-4"> <p className="text-muted text-xs mb-1"> Phone </p> <p className="text-ink text-sm"> {order.shippingAddress?.phone || "-"} </p> </div> </div> </div> {/* Customer */} {isAdmin && order.user && ( <div className="bg-card border border-line rounded-xl p-5"> <h2 className="text-lg font-semibold text-ink mb-4"> Customer Information </h2> <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"> <div className="bg-surface border border-line rounded-lg p-4"> <p className="text-muted text-xs mb-1"> Name </p> <p className="text-ink text-sm font-medium"> {order.user.name || "-"} </p> </div> <div className="bg-surface border border-line rounded-lg p-4"> <p className="text-muted text-xs mb-1"> Email </p> <p className="text-ink text-sm"> {order.user.email || "-"} </p> </div> </div> </div> )} </div> {/* Right */} <div> <div className="bg-card border border-line rounded-xl p-5 sticky top-24"> <h2 className="text-lg font-semibold text-ink mb-5"> Order Summary </h2> <div className="flex justify-between items-center mb-5"> <span className="text-muted"> Order Status </span> <span className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${getStatusStyle( order.status )}`} > {order.status || "Processing"} </span> </div> <div className="flex justify-between items-center mb-5"> <span className="text-muted"> Payment </span> <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${ order.isPaid ? "bg-green-500/10 text-green-400" : "bg-yellow-500/10 text-yellow-400" }`} > {order.isPaid ? "Paid" : "Not Paid"} </span> </div> <div className="flex justify-between items-center mb-5"> <span className="text-muted"> Delivery </span> <span className={`text-sm font-medium ${ order.isDelivered ? "text-green-400" : "text-muted" }`} > {order.isDelivered ? "Delivered" : "Not Delivered"} </span> </div> <div className="flex justify-between items-center mb-5"> <span className="text-muted"> Order Date </span> <span className="text-ink text-sm"> {order.createdAt ? new Date( order.createdAt ).toLocaleDateString() : "-"} </span> </div> <div className="border-t border-line pt-5"> <div className="flex justify-between items-center"> <span className="text-ink font-semibold"> Total </span> <span className="text-accent text-xl font-bold"> $ {Number( order.totalPrice || 0 ).toFixed(2)} </span> </div> </div> </div> </div> </div> </div> ); };
- export default OrderDetails;
+
+const OrderDetails = () => {
+  const { id } = useParams();
+
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const userInfo = JSON.parse(
+    localStorage.getItem("userInfo") || "null"
+  );
+
+  const isAdmin =
+    userInfo?.isAdmin === true || userInfo?.role === "admin";
+
+  useEffect(() => {
+    const fetchOrder = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const { data } = await API.get(`/orders/${id}`);
+        setOrder(data);
+      } catch (err) {
+        setError(
+          err.response?.data?.message ||
+            "Something went wrong while loading the order"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrder();
+  }, [id]);
+
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case "Delivered":
+        return "bg-green-500/10 text-green-400 border-green-500/20";
+
+      case "Cancelled":
+        return "bg-red-500/10 text-red-400 border-red-500/20";
+
+      case "Shipped":
+        return "bg-blue-500/10 text-blue-400 border-blue-500/20";
+
+      default:
+        return "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-5xl mx-auto px-6 py-10">
+        <div className="animate-pulse">
+          <div className="h-8 w-48 bg-card rounded mb-8" />
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 h-80 bg-card rounded-xl" />
+            <div className="h-80 bg-card rounded-xl" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-5xl mx-auto px-6 py-10 text-center">
+        <div className="bg-card border border-line rounded-xl p-10">
+          <h1 className="text-2xl font-bold text-ink">
+            Unable to load order
+          </h1>
+
+          <p className="text-muted mt-3">{error}</p>
+
+          <Link
+            to={isAdmin ? "/admin/orders" : "/orders"}
+            className="inline-block mt-6 bg-accent hover:bg-accent-dark text-white font-semibold px-6 py-3 rounded-lg transition"
+          >
+            {isAdmin ? "Back to Orders" : "Back to My Orders"}
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!order) return null;
+
+  return (
+    <div className="max-w-5xl mx-auto px-6 py-10">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div>
+          <p className="text-muted text-sm">
+            {isAdmin ? "Admin / Order Details" : "Order Details"}
+          </p>
+
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-ink mt-1">
+            Order #{order._id?.slice(-6)}
+          </h1>
+
+          <p className="text-muted text-xs mt-2 font-mono">
+            {order._id}
+          </p>
+        </div>
+
+        <Link
+          to={isAdmin ? "/admin/orders" : "/orders"}
+          className="text-accent hover:underline text-sm font-medium"
+        >
+          {isAdmin ? "← Back to Orders" : "← Back to My Orders"}
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Order Items */}
+          <div className="bg-card border border-line rounded-xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-ink">
+                Order Items
+              </h2>
+
+              <span className="text-muted text-sm">
+                {order.orderItems?.length || 0}{" "}
+                {order.orderItems?.length === 1 ? "item" : "items"}
+              </span>
+            </div>
+
+            <div className="divide-y divide-line">
+              {order.orderItems?.map((item, index) => (
+                <div
+                  key={item.product || index}
+                  className="flex flex-col sm:flex-row sm:items-center gap-4 py-4"
+                >
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-20 h-20 rounded-lg object-cover border border-line"
+                  />
+
+                  <div className="flex-1">
+                    <h3 className="text-ink font-medium">
+                      {item.name}
+                    </h3>
+
+                    <p className="text-muted text-sm mt-1">
+                      Quantity: {item.qty}
+                    </p>
+
+                    <p className="text-muted text-xs mt-1">
+                      ${Number(item.price || 0).toFixed(2)} each
+                    </p>
+                  </div>
+
+                  <div className="text-left sm:text-right">
+                    <p className="text-accent font-semibold">
+                      $
+                      {Number(
+                        (item.price || 0) * (item.qty || 0)
+                      ).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Shipping Address */}
+          <div className="bg-card border border-line rounded-xl p-5">
+            <h2 className="text-lg font-semibold text-ink mb-4">
+              Shipping Address
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-surface border border-line rounded-lg p-4">
+                <p className="text-muted text-xs mb-1">
+                  Address
+                </p>
+
+                <p className="text-ink text-sm">
+                  {order.shippingAddress?.address || "-"}
+                </p>
+              </div>
+
+              <div className="bg-surface border border-line rounded-lg p-4">
+                <p className="text-muted text-xs mb-1">
+                  City
+                </p>
+
+                <p className="text-ink text-sm">
+                  {order.shippingAddress?.city || "-"}
+                </p>
+              </div>
+
+              <div className="bg-surface border border-line rounded-lg p-4">
+                <p className="text-muted text-xs mb-1">
+                  Phone
+                </p>
+
+                <p className="text-ink text-sm">
+                  {order.shippingAddress?.phone || "-"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Customer Information */}
+          {isAdmin && order.user && (
+            <div className="bg-card border border-line rounded-xl p-5">
+              <h2 className="text-lg font-semibold text-ink mb-4">
+                Customer Information
+              </h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-surface border border-line rounded-lg p-4">
+                  <p className="text-muted text-xs mb-1">
+                    Name
+                  </p>
+
+                  <p className="text-ink text-sm font-medium">
+                    {order.user.name || "-"}
+                  </p>
+                </div>
+
+                <div className="bg-surface border border-line rounded-lg p-4">
+                  <p className="text-muted text-xs mb-1">
+                    Email
+                  </p>
+
+                  <p className="text-ink text-sm">
+                    {order.user.email || "-"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right - Order Summary */}
+        <div>
+          <div className="bg-card border border-line rounded-xl p-5 sticky top-24">
+            <h2 className="text-lg font-semibold text-ink mb-5">
+              Order Summary
+            </h2>
+
+            {/* Order Status */}
+            <div className="flex justify-between items-center mb-5">
+              <span className="text-muted">
+                Order Status
+              </span>
+
+              <span
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${getStatusStyle(
+                  order.status
+                )}`}
+              >
+                {order.status || "Processing"}
+              </span>
+            </div>
+
+            {/* Payment */}
+            <div className="flex justify-between items-center mb-5">
+              <span className="text-muted">
+                Payment
+              </span>
+
+              <span
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold ${
+                  order.isPaid
+                    ? "bg-green-500/10 text-green-400"
+                    : "bg-yellow-500/10 text-yellow-400"
+                }`}
+              >
+                {order.isPaid ? "Paid" : "Not Paid"}
+              </span>
+            </div>
+
+            {/* Delivery */}
+            <div className="flex justify-between items-center mb-5">
+              <span className="text-muted">
+                Delivery
+              </span>
+
+              <span
+                className={`text-sm font-medium ${
+                  order.isDelivered
+                    ? "text-green-400"
+                    : "text-muted"
+                }`}
+              >
+                {order.isDelivered
+                  ? "Delivered"
+                  : "Not Delivered"}
+              </span>
+            </div>
+
+            {/* Order Date */}
+            <div className="flex justify-between items-center mb-5">
+              <span className="text-muted">
+                Order Date
+              </span>
+
+              <span className="text-ink text-sm">
+                {order.createdAt
+                  ? new Date(
+                      order.createdAt
+                    ).toLocaleDateString()
+                  : "-"}
+              </span>
+            </div>
+
+            {/* Total */}
+            <div className="border-t border-line pt-5">
+              <div className="flex justify-between items-center">
+                <span className="text-ink font-semibold">
+                  Total
+                </span>
+
+                <span className="text-accent text-xl font-bold">
+                  $
+                  {Number(
+                    order.totalPrice || 0
+                  ).toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default OrderDetails;
+
