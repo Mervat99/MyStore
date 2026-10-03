@@ -1,6 +1,6 @@
 
 import gemini from "../ai/gemini.js";
-import Product from "../models/Product.js";
+import Product from "../models/product.js";
 
 export const askAI = async (req, res) => {
   try {
