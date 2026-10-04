@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import API from "../../api/axios";
@@ -40,7 +39,17 @@ const Dashboard = () => {
           totalSales,
         });
       } catch (err) {
-        setError("Failed to load dashboard stats");
+        console.error("Dashboard error:", err);
+        console.error("Response:", err.response);
+        console.error("Response data:", err.response?.data);
+        console.error("Status:", err.response?.status);
+        console.error("Message:", err.message);
+
+        setError(
+          err.response?.data?.message ||
+            err.message ||
+            "Failed to load dashboard stats"
+        );
       } finally {
         setLoading(false);
       }
@@ -72,16 +81,13 @@ const Dashboard = () => {
       </h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total Products */}
         <div className="bg-card border border-line rounded-xl p-6">
           <p className="text-sm text-muted font-medium mb-1">
             Total Products
           </p>
-
           <p className="font-display text-4xl font-bold text-ink mb-3">
             {stats.productCount}
           </p>
-
           <Link
             to="/admin/products"
             className="text-sm text-accent font-medium hover:underline"
@@ -90,16 +96,13 @@ const Dashboard = () => {
           </Link>
         </div>
 
-        {/* Total Orders */}
         <div className="bg-card border border-line rounded-xl p-6">
           <p className="text-sm text-muted font-medium mb-1">
             Total Orders
           </p>
-
           <p className="font-display text-4xl font-bold text-ink mb-3">
             {stats.orderCount}
           </p>
-
           <Link
             to="/admin/orders"
             className="text-sm text-accent font-medium hover:underline"
@@ -108,16 +111,13 @@ const Dashboard = () => {
           </Link>
         </div>
 
-        {/* Pending Orders */}
         <div className="bg-card border border-line rounded-xl p-6">
           <p className="text-sm text-muted font-medium mb-1">
             Pending Orders
           </p>
-
           <p className="font-display text-4xl font-bold text-ink mb-3">
             {stats.pendingOrders}
           </p>
-
           <Link
             to="/admin/orders"
             className="text-sm text-accent font-medium hover:underline"
@@ -126,12 +126,10 @@ const Dashboard = () => {
           </Link>
         </div>
 
-        {/* Total Sales */}
         <div className="bg-accent-light border border-accent/20 rounded-xl p-6">
           <p className="text-sm text-accent-dark font-medium mb-1">
             Total Sales
           </p>
-
           <p className="font-display text-4xl font-bold text-accent-dark">
             ${stats.totalSales.toFixed(2)}
           </p>
@@ -142,4 +140,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
