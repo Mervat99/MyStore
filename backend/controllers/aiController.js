@@ -4,6 +4,11 @@ import Product from "../models/product.js";
 
 export const askAI = async (req, res) => {
   try {
+    console.log(
+      "GEMINI KEY EXISTS:",
+      !!process.env.GEMINI_API_KEY
+    );
+
     const { message } = req.body;
 
     if (!message || !message.trim()) {
