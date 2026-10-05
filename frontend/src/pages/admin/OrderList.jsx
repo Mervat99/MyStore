@@ -224,9 +224,9 @@ const OrderList = () => {
                     Status
                   </th>
 
-                  <th className="px-4 py-3 font-medium">
+                  {/* <th className="px-4 py-3 font-medium">
                     Action
-                  </th>
+                  </th> */}
                 </tr>
               </thead>
 
@@ -290,14 +290,14 @@ const OrderList = () => {
                       </select>
                     </td>
 
-                    <td className="px-4 py-4">
+                    {/* <td className="px-4 py-4">
                       <Link
                         to={`/orders/${order._id}`}
                         className="inline-block bg-accent/10 hover:bg-accent/20 text-accent px-4 py-2 rounded-lg text-xs font-semibold transition"
                       >
                         View
                       </Link>
-                    </td>
+                    </td> */}
                   </tr>
                 ))}
               </tbody>
